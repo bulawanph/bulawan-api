@@ -8,9 +8,9 @@ app.use(cors());
 app.use(express.json());
 
 // Get env vars
-const SUPABASE_URL = process.env.SUPABASE_URL || '';
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
-const PAYMONGO_SECRET_KEY = process.env.PAYMONGO_SECRET_KEY || '';
+const SUPABASE_URL = 'https://jorjpcdhxhwfnfnrilzf.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_SmU9_prO2J3v7gqbbsNlxA_7iodBDiZ';
+const PAYMONGO_SECRET_KEY = 'sk_live_WUR3aQzPPwh7j2417xWXTJYv';
 
 // QRPH
 app.post('/api/create-qrph', async (req, res) => {
