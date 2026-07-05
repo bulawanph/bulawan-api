@@ -20,7 +20,7 @@ app.post('/api/create-qrph', async (req, res) => {
     console.log('Amount:', amount);
     
     const authHeader = 'Basic ' + Buffer.from(PAYMONGO_SECRET_KEY + ':').toString('base64');
-    console.log('Auth header created');
+    console.log('Auth created');
     
     const response = await fetch('https://api.paymongo.com/v1/sources', {
       method: 'POST',
@@ -43,9 +43,9 @@ app.post('/api/create-qrph', async (req, res) => {
       })
     });
     
-    console.log('PayMongo response status:', response.status);
+    console.log('PayMongo status:', response.status);
     const data = await response.json();
-    console.log('PayMongo response:', data);
+    console.log('PayMongo data:', data);
     
     if (data.data && data.data.attributes && data.data.attributes.source_url) {
       res.json({ success: true, qrUrl: data.data.attributes.source_url, sourceId: data.data.id });
@@ -54,12 +54,6 @@ app.post('/api/create-qrph', async (req, res) => {
     }
   } catch (error) {
     console.error('QRPH Error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-    const data = await response.json();
-    res.json({ success: true, qrUrl: data.data.attributes.source_url, sourceId: data.data.id });
-  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
