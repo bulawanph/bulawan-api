@@ -15,12 +15,18 @@ const PAYMONGO_SECRET_KEY = 'sk_live_WUR3aQzPPwh7j2417xWXTJYv';
 // QRPH
 app.post('/api/create-qrph', async (req, res) => {
   try {
+    console.log('QRPH Request received');
     const { amount } = req.body;
+    console.log('Amount:', amount);
+    
+    const authHeader = 'Basic ' + Buffer.from(PAYMONGO_SECRET_KEY + ':').toString('base64');
+    console.log('Auth header created');
+    
     const response = await fetch('https://api.paymongo.com/v1/sources', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Basic ' + Buffer.from(PAYMONGO_SECRET_KEY + ':').toString('base64')
+        'Authorization': authHeader
       },
       body: JSON.stringify({
         data: {
@@ -36,6 +42,21 @@ app.post('/api/create-qrph', async (req, res) => {
         }
       })
     });
+    
+    console.log('PayMongo response status:', response.status);
+    const data = await response.json();
+    console.log('PayMongo response:', data);
+    
+    if (data.data && data.data.attributes && data.data.attributes.source_url) {
+      res.json({ success: true, qrUrl: data.data.attributes.source_url, sourceId: data.data.id });
+    } else {
+      res.status(400).json({ success: false, error: 'Invalid response', data });
+    }
+  } catch (error) {
+    console.error('QRPH Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
     const data = await response.json();
     res.json({ success: true, qrUrl: data.data.attributes.source_url, sourceId: data.data.id });
   } catch (error) {
