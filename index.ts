@@ -146,9 +146,18 @@ app.post('/api/update-premium', async (req, res) => {
   }
 });
 
+// ✅ FIXED CORS MIDDLEWARE - Allow Cloudflare & all origins
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-KEY');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.header('Access-Control-Max-Age', '3600');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
   next();
 });
 
