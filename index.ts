@@ -12,8 +12,8 @@ const SUPABASE_URL = 'https://jorjpcdhxhwfnfnrilzf.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_SmU9_prO2J3v7gqbbsNlxA_7iodBDiZ';
 const PAYMONGO_SECRET_KEY = 'sk_live_WUR3aQzPPwh7j2417xWXTJYv';
 
-// QRPH - Handle ALL response formats
-app.post('/api/create-QRph', async (req, res) => {
+// QRPH - WORKING VERSION
+app.post('/api/create-qrph', async (req, res) => {
   try {
     const { amount, email, name } = req.body;
     
@@ -34,7 +34,7 @@ app.post('/api/create-QRph', async (req, res) => {
           attributes: {
             amount: amount,
             currency: 'PHP',
-            type: 'QRph',
+            type: 'qrph',
             redirect: {
               success: 'https://bulawanph.com/payment-success.html',
               failed: 'https://bulawanph.com/payment.html'
@@ -46,7 +46,6 @@ app.post('/api/create-QRph', async (req, res) => {
 
     const data = await response.json();
     
-    // Handle success response
     if (data.data?.attributes?.source_url) {
       return res.json({ 
         success: true, 
@@ -55,7 +54,6 @@ app.post('/api/create-QRph', async (req, res) => {
       });
     }
     
-    // Handle error response
     if (data.errors) {
       return res.status(400).json({ 
         success: false, 
@@ -63,7 +61,6 @@ app.post('/api/create-QRph', async (req, res) => {
       });
     }
     
-    // Fallback
     return res.status(400).json({ 
       success: false, 
       error: 'Invalid PayMongo response',
