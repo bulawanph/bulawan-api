@@ -12,7 +12,7 @@ const SUPABASE_URL = 'https://jorjpcdhxhwfnfnrilzf.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_SmU9_prO2J3v7gqbbsNlxA_7iodBDiZ';
 const PAYMONGO_SECRET_KEY = 'sk_live_WUR3aQzPPwh7j2417xWXTJYv';
 
-// QRPH - WORKING VERSION
+// QRPH - WITH CAPITAL LETTERS
 app.post('/api/create-qrph', async (req, res) => {
   try {
     const { amount, email, name } = req.body;
@@ -34,7 +34,7 @@ app.post('/api/create-qrph', async (req, res) => {
           attributes: {
             amount: amount,
             currency: 'PHP',
-            type: 'qrph',
+            type: 'QRph',
             redirect: {
               success: 'https://bulawanph.com/payment-success.html',
               failed: 'https://bulawanph.com/payment.html'
