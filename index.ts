@@ -4,21 +4,15 @@ import cors from 'cors';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Enable CORS for ALL routes
-app.use(cors({
-  origin: '*',
-  credentials: false
-}));
-
+// Enable CORS
+app.use(cors());
 app.use(express.json());
 
-// ✅ SIMPLE GOLD PRICE ENDPOINT
+// ✅ GOLD PRICE ENDPOINT
 app.get('/api/gold-prices', async (req, res) => {
   try {
     const API_KEY = process.env.GOLDPRICEZ_API_KEY;
     const API_URL = 'https://goldpricez.com/api/rates/currency/php/measure/all';
-    
-    console.log('🔄 Fetching prices...');
     
     const response = await fetch(API_URL, {
       headers: { 'X-API-KEY': API_KEY }
@@ -34,56 +28,43 @@ app.get('/api/gold-prices', async (req, res) => {
       updated_at: new Date().toISOString()
     });
   } catch (error) {
-    console.error('❌ Error:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Env vars
 const SUPABASE_URL = 'https://jorjpcdhxhwfnfnrilzf.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_SmU9_prO2J3v7gqbbsNlxA_7iodBDiZ';
 const PAYMONGO_SECRET_KEY = 'sk_live_WUR3aQzPPwh7j2417xWXTJYv';
 
-// QRPH
 app.post('/api/create-qrph', async (req, res) => {
   try {
     const { amount } = req.body;
     if (!amount) return res.status(400).json({ error: 'Amount required' });
-
     const authHeader = 'Basic ' + Buffer.from(PAYMONGO_SECRET_KEY + ':').toString('base64');
     const response = await fetch('https://api.paymongo.com/v1/sources', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': authHeader
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
       body: JSON.stringify({
         data: {
           attributes: {
             amount: amount,
             currency: 'PHP',
             type: 'QRph',
-            redirect: {
-              success: 'https://bulawanph.com/payment-success.html',
-              failed: 'https://bulawanph.com/payment.html'
-            }
+            redirect: { success: 'https://bulawanph.com/payment-success.html', failed: 'https://bulawanph.com/payment.html' }
           }
         }
       })
     });
-
     const data = await response.json();
     if (data.data?.attributes?.source_url) {
       return res.json({ success: true, qrUrl: data.data.attributes.source_url, sourceId: data.data.id });
     }
-    if (data.errors) return res.status(400).json({ success: false, error: data.errors[0]?.detail });
-    res.status(400).json({ success: false, error: 'Invalid response' });
+    res.status(400).json({ success: false, error: data.errors?.[0]?.detail || 'Error' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// SIGNUP
 app.post('/api/signup', async (req, res) => {
   const { email, password, full_name } = req.body;
   try {
@@ -93,13 +74,12 @@ app.post('/api/signup', async (req, res) => {
       body: JSON.stringify({ email, password: btoa(password), full_name, premium: false })
     });
     const data = await response.json();
-    res.status(response.ok ? 200 : 400).json(response.ok ? { success: true, message: 'Account created' } : { success: false, error: data.message });
+    res.json(response.ok ? { success: true } : { success: false, error: data.message });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
 
-// SIGNIN
 app.post('/api/signin', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -107,16 +87,15 @@ app.post('/api/signin', async (req, res) => {
       headers: { 'apikey': SUPABASE_ANON_KEY }
     });
     const users = await response.json();
-    if (!Array.isArray(users) || users.length === 0) return res.status(401).json({ success: false, error: 'User not found' });
+    if (!users[0]) return res.status(401).json({ error: 'User not found' });
     const user = users[0];
-    if (user.password !== btoa(password)) return res.status(401).json({ success: false, error: 'Invalid password' });
-    res.json({ success: true, user: { id: user.id, email: user.email, full_name: user.full_name, premium: user.premium } });
+    if (user.password !== btoa(password)) return res.status(401).json({ error: 'Invalid password' });
+    res.json({ success: true, user });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
 
-// UPDATE PREMIUM
 app.post('/api/update-premium', async (req, res) => {
   const { user_id } = req.body;
   try {
@@ -126,10 +105,10 @@ app.post('/api/update-premium', async (req, res) => {
       body: JSON.stringify({ premium: true })
     });
     const data = await response.json();
-    res.status(response.ok ? 200 : 400).json(response.ok ? { success: true, user: data[0] } : { success: false, error: 'Update failed' });
+    res.json({ success: true, user: data[0] });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
 
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Server on ${PORT}`));
