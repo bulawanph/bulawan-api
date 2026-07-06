@@ -7,6 +7,9 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Gold Price API Route
+   app.use('/api/gold-prices', require('./routes/goldPrice'));
+
 // Env vars
 const SUPABASE_URL = 'https://jorjpcdhxhwfnfnrilzf.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_SmU9_prO2J3v7gqbbsNlxA_7iodBDiZ';
