@@ -1,6 +1,5 @@
-// routes/goldPrice.js
+import express from 'express';
 
-const express = require('express');
 const router = express.Router();
 
 const API_KEY = process.env.GOLDPRICEZ_API_KEY;
@@ -16,7 +15,7 @@ let cacheTime = 0;
  */
 router.get('/', async (req, res) => {
   try {
-    // Check if cache is still fresh (less than 1 hour old)
+    // Check if cache is still fresh
     if (cachedPrices && Date.now() - cacheTime < CACHE_DURATION) {
       console.log('✅ Returning cached prices');
       return res.json(cachedPrices);
@@ -29,7 +28,6 @@ router.get('/', async (req, res) => {
       headers: {
         'X-API-KEY': API_KEY,
       },
-      timeout: 10000,
     });
 
     if (!response.ok) {
@@ -38,25 +36,21 @@ router.get('/', async (req, res) => {
 
     const data = await response.json();
 
-    // Parse the response - it comes as a string, so we need to parse it
-    let rates = data;
-    if (typeof data === 'string') {
-      rates = JSON.parse(data);
-    }
-
-    // Format the response
+    // Calculate prices for different karats
+    const gram_php = parseFloat(data.gram_in_php);
+    
     const prices = {
       '24K': {
-        gram: Math.round(parseFloat(rates.gram_in_php) * 100) / 100,
-        ounce: Math.round(parseFloat(rates.ounce_in_php) * 100) / 100,
+        gram: Math.round(gram_php * 100) / 100,
+        ounce: Math.round(parseFloat(data.ounce_in_php) * 100) / 100,
       },
       '22K': {
-        gram: Math.round(parseFloat(rates.gram_in_php) * 0.916 * 100) / 100,
-        ounce: Math.round(parseFloat(rates.ounce_in_php) * 0.916 * 100) / 100,
+        gram: Math.round(gram_php * 0.916 * 100) / 100,
+        ounce: Math.round(parseFloat(data.ounce_in_php) * 0.916 * 100) / 100,
       },
       '18K': {
-        gram: Math.round(parseFloat(rates.gram_in_php) * 0.750 * 100) / 100,
-        ounce: Math.round(parseFloat(rates.ounce_in_php) * 0.750 * 100) / 100,
+        gram: Math.round(gram_php * 0.75 * 100) / 100,
+        ounce: Math.round(parseFloat(data.ounce_in_php) * 0.75 * 100) / 100,
       },
       updated_at: new Date().toISOString(),
       source: 'GoldPricez API',
@@ -66,21 +60,21 @@ router.get('/', async (req, res) => {
     cachedPrices = prices;
     cacheTime = Date.now();
 
-    console.log('✅ Prices fetched successfully:', prices);
-    res.json(prices);
+    console.log('✅ Prices fetched:', prices);
+    return res.json(prices);
 
   } catch (error) {
-    console.error('❌ Error fetching gold prices:', error);
+    console.error('❌ Error:', error.message);
     
-    // Return cached prices if available (fallback)
+    // Return cached prices if available
     if (cachedPrices) {
-      console.log('⚠️ API failed, returning cached prices');
+      console.log('⚠️ Using cached prices');
       return res.json(cachedPrices);
     }
 
-    // If no cache, return error
-    res.status(500).json({
-      error: 'Failed to fetch gold prices',
+    // Fallback prices
+    return res.status(500).json({
+      error: 'Failed to fetch prices',
       message: error.message,
       fallback: {
         '24K': { gram: 8238.76 },
@@ -91,4 +85,4 @@ router.get('/', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
