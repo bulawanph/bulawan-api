@@ -15,6 +15,16 @@ let cacheTime = 0;
  */
 router.get('/', async (req, res) => {
   try {
+    // Set CORS headers for this endpoint
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-KEY');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    
+    // Handle preflight
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    }
+
     // Check if cache is still fresh
     if (cachedPrices && Date.now() - cacheTime < CACHE_DURATION) {
       console.log('✅ Returning cached prices');
